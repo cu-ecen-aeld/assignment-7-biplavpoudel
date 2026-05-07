@@ -22,7 +22,15 @@ else
 fi
 
 echo "Load our module, exit on failure"
-insmod ./$module.ko $* || exit 1
+# insmod ./$module.ko $* || exit 1
+# This FAILS because it expects faulty.ko to exist in the CURRENT DIRECTORY,
+# but my init scripts runs from "/etc/init.d", not from "/lib/modules"
+# Using absolute directory can work too: ----->     insmod /lib/modules/$(uname -r)/extra/faulty.ko
+# So I am using modprobe as it is doesn't care about working dir, searches module database, and loads all the dependencies by itself!
+
+modprobe $module || exit 1
+
+
 echo "Get the major number (allocated with allocate_chrdev_region) from /proc/devices"
 major=$(awk "\$2==\"$module\" {print \$1}" /proc/devices)
 if [ ! -z ${major} ]; then

@@ -11,9 +11,13 @@ else
     group="wheel"
 fi
 
-# invoke insmod with all arguments we got
-# and use a pathname, as insmod doesn't look in . by default
-insmod ./$module.ko $* || exit 1
+# invoke insmod with all arguments we got and use a pathname, as insmod doesn't look in . by default
+# insmod ./$module.ko $* || exit 1
+# This FAILS because it expects scull.ko to exist in the CURRENT DIRECTORY,
+# but my init scripts runs from "/etc/init.d", not from "/lib/modules"
+# Using absolute directory can work too: ----->     insmod /lib/modules/$(uname -r)/extra/scull.ko
+# So I am using modprobe as it is doesn't care about working dir, searches module database, and loads all the dependencies by itself!
+modprobe $module || exit 1
 
 # retrieve major number
 major=$(awk "\$2==\"$module\" {print \$1}" /proc/devices)
